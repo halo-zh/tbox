@@ -545,12 +545,12 @@ ARM Macro Assembler    Page 9
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=tbox_ec600\startup_stm32f105xc.d -otbox_ec600\startup_stm32f105xc.
-o -I..\Core\Inc -I.\RTE\_Tbox_EC600 -IC:\Users\zaa6wx\AppData\Local\Arm\Packs\A
-RM\CMSIS\5.9.0\CMSIS\Core\Include -IC:\Users\zaa6wx\AppData\Local\Arm\Packs\Kei
-l\Jansson\1.0.0\src -IC:\Users\zaa6wx\AppData\Local\Arm\Packs\Keil\STM32F1xx_DF
-P\2.3.0\Device\Include --predefine="__MICROLIB SETA 1" --predefine="__UVISION_V
-ERSION SETA 530" --predefine="_RTE_ SETA 1" --predefine="STM32F10X_CL SETA 1" -
--predefine="_RTE_ SETA 1" --list=startup_stm32f105xc.lst startup_stm32f105xc.s
+o -I..\Core\Inc -I.\RTE\_Tbox_EC600 -IC:\Users\zaa6wx\AppData\Local\Arm\Packs\K
+eil\Jansson\1.0.0\src -IC:\Users\zaa6wx\AppData\Local\Arm\Packs\Keil\STM32F1xx_
+DFP\2.3.0\Device\Include -IC:\Keil_v5\ARM\CMSIS\Include --predefine="__MICROLIB
+ SETA 1" --predefine="__UVISION_VERSION SETA 530" --predefine="_RTE_ SETA 1" --
+predefine="STM32F10X_CL SETA 1" --predefine="_RTE_ SETA 1" --list=startup_stm32
+f105xc.lst startup_stm32f105xc.s
 
 
 
