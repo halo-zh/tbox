@@ -79,18 +79,19 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, BAT_EN_Pin|LET_USART_DTR_Pin|LTE_RESET_Pin|EC600_EN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, BAT_EN_Pin|DE_RE_485_Pin, GPIO_PIN_SET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, LET_USART_DTR_Pin|LTE_RESET_Pin|EC600_EN_Pin, GPIO_PIN_RESET);
 
-  HAL_GPIO_WritePin(GPIOA, BAT_EN_Pin, GPIO_PIN_SET);
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED_Y_Pin|CHRG_STOP_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED_Y_GPIO_Port, LED_Y_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(DE_RE_485_GPIO_Port, DE_RE_485_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(CHRG_STOP_GPIO_Port, CHRG_STOP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PC13 PC14 PC15 PC1
                            PC2 PC3 PC4 PC6
@@ -101,18 +102,18 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA1 PA5 PA6 PA7
-                           PA12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
-                          |GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = VOLT12_FLAG_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(VOLT12_FLAG_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA2 PA5 PA6 PA7
+                           PA12 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
+                          |GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PAPin PAPin PAPin PAPin
                            PAPin */

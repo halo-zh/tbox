@@ -58,6 +58,25 @@ __packed typedef struct
     uint16_t batCellDiffMax;
     uint16_t batTemp;
 }bmsInfo_t;
+
+
+__packed typedef struct
+{
+    uint16_t i;
+    uint8_t m;
+    uint8_t rev:1;
+    uint8_t cellVoltDiffExcessive:1;
+    uint8_t chargeCurOverflow:1;
+    uint8_t dischargeCurOverflow:1;
+    uint8_t circuitShortProtect:1;
+    uint8_t chageOverTemp:1;
+    uint8_t dischargeOverTemp:1;
+    uint8_t chargeTempTooLow:1;
+    uint8_t dischargeTempTooLow:1;
+    uint8_t chargeMosfetErr:1;
+    uint8_t dischargeMosfetErr:1;
+    uint8_t internalComErr:1;
+}bmsErrInfo_t;
 /* USER CODE END Private defines */
 
 void MX_UART4_Init(void);
@@ -65,8 +84,8 @@ void MX_USART1_UART_Init(void);
 void MX_USART3_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-extern bool readBmsRegs();
-extern bool readBmsID();
+extern bool readBmsRegs(void);
+extern bool readBmsID(void);
 extern uint8_t uart4RxData[10];
 extern uint8_t uart4RxLen;
 
@@ -76,12 +95,13 @@ extern uint16_t batVoltTot; //0
 extern uint16_t cellCnt;    //1
 extern uint16_t soc;
 extern uint16_t soh;
-extern uint16_t capacity;
 extern int16_t batCurrent;
-extern uint16_t currentIn;
 extern uint16_t boardTemp;
-extern uint16_t batTemp1;
-extern uint16_t batTemp2;
+
+
+
+extern char batErr[200];
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

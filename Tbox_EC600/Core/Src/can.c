@@ -23,6 +23,7 @@
 /* USER CODE BEGIN 0 */
 #include <jansson.h>
 #include "usart.h"
+#include "string.h"
 uint8_t mosfetFault;
 uint8_t driveFault;
 uint8_t overCurrentFault;
@@ -52,7 +53,8 @@ CAN_RxHeaderTypeDef rxHeader;
 
 json_t *root;
 char* text;
-char jsonData[1000];
+char jsonData[800];
+char inverterErr[200];
 
 uint16_t jsonLen=0;
 json_t * jsonMsg;
@@ -69,6 +71,14 @@ json_t *gearInfo_t;
 json_t *throttle_t;
 json_t *brake_t;
 json_t *sideStand_t;
+
+json_t *batErr_t;
+json_t *inverterErr_t;
+
+json_t *tboxInternalBatVolt_t;
+
+extern uint16_t internalBatVolt;
+
 void initJsonObj()
 {
     jsonMsg = json_object();
@@ -78,6 +88,7 @@ void initJsonObj()
     }
     motorTemp_t = json_integer(motorTemp);
     controllerTemp_t = json_integer(controllerTemp);
+    
     Battery_Percent_t = json_integer(soc);
     BatterySOH_t = json_integer(soh);
     
@@ -90,7 +101,12 @@ void initJsonObj()
     throttle_t = json_integer(throttlePercent);
     brake_t = json_integer(brake);
     sideStand_t = json_integer(sideStand);
+    tboxInternalBatVolt_t =json_integer(internalBatVolt);
     
+    batErr_t = json_string(batErr);
+    inverterErr_t = json_string(inverterErr);
+    
+      
     
   
     json_object_set( jsonMsg,"MotorTemp",motorTemp_t);
@@ -109,12 +125,16 @@ void initJsonObj()
     json_object_set( jsonMsg,"ThrottlePercent",throttle_t);
     json_object_set( jsonMsg,"BrakeStatus",brake_t);
     json_object_set( jsonMsg,"SideStandInfo",sideStand_t);
+    json_object_set( jsonMsg,"Tbox Internal Bat Volt",tboxInternalBatVolt_t);
     
-    
+    json_object_set( jsonMsg,"Battery Error",batErr_t);
+    json_object_set( jsonMsg,"Inverter Error",inverterErr_t);
+       
 }
+void updateInverteInfo(void);
 void packJaon()
 {
-    
+
     json_integer_set( motorTemp_t,motorTemp);
     json_integer_set( controllerTemp_t,controllerTemp);
     json_integer_set( Battery_Percent_t,soc);
@@ -128,18 +148,36 @@ void packJaon()
     json_integer_set( throttle_t,throttlePercent);
     json_integer_set( brake_t,brake);
     json_integer_set( sideStand_t,sideStand);
+    json_integer_set( tboxInternalBatVolt_t,internalBatVolt);
+    
+    json_string_set( batErr_t,batErr);
+    json_string_set( inverterErr_t,inverterErr);
     
     
     
 
     text = json_dumps(jsonMsg,0);
     jsonData[0]=0xDD;
-    jsonLen = snprintf(&jsonData[1],200,"%s",text);
+    jsonLen = snprintf(&jsonData[1],800,"%s",text);
     jsonData[jsonLen+1]=0xee;  
     jsonLen+=2;
     free(text);    
 }
 
+
+char mosfer_e[]="mosfet err;";
+char driver_e[]="drive fault;";
+char overCurrent_e[]="over current err;";
+char overVolt_e[]="over volt err;";
+char inverterOverTemp_e[]="inverter over temp;";
+char voltlow_e[]="low volt;";
+char phaselost_e[]="phase lost err;";
+char hallFault_e[]="hall fault;";
+char motorOverHeat_e[]="motor over heat;";
+char rotorLockedFault_e[]="rotor lock fault;";
+char throttleFault_e[]="throttle fault;";
+
+char noErr[]="No Error";
 
 void updateInverteInfo()
 {
@@ -157,7 +195,64 @@ void updateInverteInfo()
 
         motorOverHeatFault    = ptr_s->motorOverHeatFault;
         rotorLockedFault      = ptr_s->rotorLockedFault;
-        throttleFault         = ptr_s->throttleFault;           
+        throttleFault         = ptr_s->throttleFault;  
+      
+        memset(inverterErr,0x00,sizeof(inverterErr));
+        if((canRxData[2] !=0)||(canRxData[3]!=0))
+        {
+           
+        }
+        else
+        {
+            strcat(inverterErr,noErr);
+        }
+        
+        if(mosfetFault == 1)
+        {
+            strcat(inverterErr,mosfer_e);
+        }
+        if(driveFault == 1)
+        {
+            strcat(inverterErr,driver_e);
+        }
+        if(overCurrentFault == 1)
+        {
+            strcat(inverterErr,overCurrent_e);
+        }
+        if(overVoltFault == 1)
+        {
+            strcat(inverterErr,overVolt_e);
+        }
+        if(inverterOverTempFault == 1)
+        {
+            strcat(inverterErr,inverterOverTemp_e);
+        }
+        if(lowVoltFault == 1)
+        {
+            strcat(inverterErr,voltlow_e);
+        }
+        if(phaseLossFault == 1)
+        {
+            strcat(inverterErr,phaselost_e);
+        }
+        if(HallFault == 1)
+        {
+            strcat(inverterErr,hallFault_e);
+        }
+        if(motorOverHeatFault == 1)
+        {
+            strcat(inverterErr,motorOverHeat_e);
+        }
+        if(rotorLockedFault == 1)
+        {
+            strcat(inverterErr,rotorLockedFault_e);
+        }
+        if(throttleFault == 1)
+        {
+            strcat(inverterErr,throttleFault_e);
+        }
+            
+            
     }
     else if((rxHeader.StdId == 0x185) &&(rxHeader.DLC>=3))
     {
@@ -292,19 +387,15 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     GPIO_InitStruct.Pin = GPIO_PIN_9;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);\
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     
     CLEAR_BIT(canHandle->Instance->MCR,CAN_MCR_SLEEP);
 
     __HAL_AFIO_REMAP_CAN1_2();
-    
-    
 
     /* CAN1 interrupt Init */
     HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
-    HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
   /* USER CODE BEGIN CAN1_MspInit 1 */
 
   /* USER CODE END CAN1_MspInit 1 */
@@ -330,20 +421,19 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    
+    CLEAR_BIT(canHandle->Instance->MCR,CAN_MCR_SLEEP);
 
     GPIO_InitStruct.Pin = GPIO_PIN_13;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-     CLEAR_BIT(canHandle->Instance->MCR,CAN_MCR_SLEEP);
     /* CAN2 interrupt Init */
     HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
-    HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
   /* USER CODE BEGIN CAN2_MspInit 1 */
-
+   
   /* USER CODE END CAN2_MspInit 1 */
   }
 }
@@ -370,7 +460,6 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 
     /* CAN1 interrupt Deinit */
     HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
-    HAL_NVIC_DisableIRQ(CAN1_RX1_IRQn);
   /* USER CODE BEGIN CAN1_MspDeInit 1 */
 
   /* USER CODE END CAN1_MspDeInit 1 */
@@ -395,7 +484,6 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 
     /* CAN2 interrupt Deinit */
     HAL_NVIC_DisableIRQ(CAN2_RX0_IRQn);
-    HAL_NVIC_DisableIRQ(CAN2_RX1_IRQn);
   /* USER CODE BEGIN CAN2_MspDeInit 1 */
 
   /* USER CODE END CAN2_MspDeInit 1 */
@@ -415,13 +503,13 @@ HAL_StatusTypeDef ConfigFilter()
     canFilter.FilterMaskIdHigh=0x0;
     canFilter.FilterMaskIdLow=0x0;
     canFilter.FilterFIFOAssignment = CAN_RX_FIFO0;
-    canFilter.SlaveStartFilterBank=15;
     
     HAL_CAN_ConfigFilter(&hcan1,&canFilter);
     
-    canFilter.FilterBank=15;
-    canFilter.SlaveStartFilterBank=15;
+    canFilter.FilterBank=14;
+    canFilter.SlaveStartFilterBank=14;
     HAL_CAN_ConfigFilter(&hcan2,&canFilter);
+    return HAL_OK;
     
 } 
     

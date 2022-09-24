@@ -122,12 +122,11 @@ void updateBatInfo()
 char batErr[200];
 char voltDiff[]="batVoltDiffErr;";
 char curHigh[]="current overflow err;";
-char tempHigh[]="temprature too high err;";
-char tempLow[]="temprature too low err;";
+char tempHigh[]="temp too high err;";
+char tempLow[]="temp too low err;";
 char mosfet[]="mosfet err;";
 char com[]="internal communicate err;";
 char circuitshort[]="bat circuit short;";
-char errNone[]="No Error";
 void updateBatErrInfo()
 {
  batCellVoltDifferenceOverflowErr_b = bmsErrInfoPtr->cellVoltDiffExcessive;
@@ -137,45 +136,35 @@ void updateBatErrInfo()
  batTempLowErr_b                    = bmsErrInfoPtr->chargeTempTooLow|bmsErrInfoPtr->dischargeTempTooLow;
  batMosfetErr_b                     = bmsErrInfoPtr->chargeMosfetErr |bmsErrInfoPtr->dischargeMosfetErr;
  batInternalComErr_b                = bmsErrInfoPtr->internalComErr;
-
-  memset(batErr,0x00,sizeof(batErr));
- if((bmsRxData[3]!=0)||(bmsRxData[4]!=0))
- {
-    
- }
- else
- {
-     strcat(batErr,errNone);
- }
- 
+ memset(batErr,0x00,sizeof(batErr));
  if(batCellVoltDifferenceOverflowErr_b == 1)
  {
     strcat(batErr,voltDiff);
  }
 
- if(batCurrentOverflowErr_b == 1)
- {
-    strcat(batErr,curHigh);
- } 
- if(batCircuitShortErr_b == 1)
+    if(batCurrentOverflowErr_b == 1)
  {
     strcat(batErr,voltDiff);
  } 
- if(batTempHighErr_b == 1)
+if(batCircuitShortErr_b == 1)
  {
-    strcat(batErr,tempHigh);
+    strcat(batErr,voltDiff);
  } 
- if(batTempLowErr_b == 1)
+if(batCellVoltDifferenceOverflowErr_b == 1)
  {
-    strcat(batErr,tempLow);
+    strcat(batErr,voltDiff);
  } 
- if(batMosfetErr_b == 1)
+if(batCellVoltDifferenceOverflowErr_b == 1)
  {
-    strcat(batErr,mosfet);
+    strcat(batErr,voltDiff);
  } 
- if(batInternalComErr_b == 1)
+if(batCellVoltDifferenceOverflowErr_b == 1)
  {
-    strcat(batErr,com);
+    strcat(batErr,voltDiff);
+ } 
+if(batCellVoltDifferenceOverflowErr_b == 1)
+ {
+    strcat(batErr,voltDiff);
  }  
     
     

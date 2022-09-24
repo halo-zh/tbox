@@ -41,7 +41,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint16_t volt12Value=0;
+uint16_t internalBatVolt=0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -187,7 +187,7 @@ void StartEC600Com(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1000);
+    osDelay(10000);
     
     packJaon();
     HAL_UART_Transmit_DMA(&huart4,jsonData,jsonLen);
@@ -203,7 +203,6 @@ void StartEC600Com(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_powerControlFunc */
-uint8_t rxCnt=0;
 void powerControlFunc(void const * argument)
 {
   /* USER CODE BEGIN powerControlFunc */
@@ -221,12 +220,12 @@ void powerControlFunc(void const * argument)
   {
     sndCANMsg();
     osDelay(100);
-    rxCnt = HAL_CAN_GetRxFifoFillLevel(&hcan1,CAN_RX_FIFO0);
+    
     HAL_ADC_Start(&hadc1);
     if(HAL_OK == HAL_ADC_PollForConversion(&hadc1,10))
     {
-        volt12Value = HAL_ADC_GetValue(&hadc1);
-        volt12Value = volt12Value*3300/4096*13/3;
+        internalBatVolt = HAL_ADC_GetValue(&hadc1);
+        internalBatVolt = internalBatVolt*3300/4096*13/3/100;
         
     }
     
@@ -266,6 +265,7 @@ void powerControlFunc(void const * argument)
               HAL_PWR_EnterSTANDBYMode();
           }
       }
+      
          
   }
   /* USER CODE END powerControlFunc */
