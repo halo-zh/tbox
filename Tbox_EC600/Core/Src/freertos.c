@@ -31,6 +31,7 @@
 #include "can.h"
 #include "stdio.h"
 #include "string.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +41,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+uint16_t volt12Value=0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -202,6 +203,7 @@ void StartEC600Com(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_powerControlFunc */
+uint8_t rxCnt=0;
 void powerControlFunc(void const * argument)
 {
   /* USER CODE BEGIN powerControlFunc */
@@ -217,7 +219,17 @@ void powerControlFunc(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+    sndCANMsg();
     osDelay(100);
+    rxCnt = HAL_CAN_GetRxFifoFillLevel(&hcan1,CAN_RX_FIFO0);
+    HAL_ADC_Start(&hadc1);
+    if(HAL_OK == HAL_ADC_PollForConversion(&hadc1,10))
+    {
+        volt12Value = HAL_ADC_GetValue(&hadc1);
+        volt12Value = volt12Value*3300/4096*13/3;
+        
+    }
+    
     powerStatus = readPowerSupplyStatus();
     if(powerStatus == 1)
     {
@@ -230,7 +242,7 @@ void powerControlFunc(void const * argument)
         lpmStartFlag =1;
     }
     
-    if((osKernelSysTick() - startTs) >20000)  //delay 20 seconds
+    if((osKernelSysTick() - startTs) >200000)  //delay 20 seconds
     {
         //MCU enter stop mode 
           if ( 0 != mpu_lp_motion_interrupt(1000, 1, 40))
@@ -239,6 +251,7 @@ void powerControlFunc(void const * argument)
           }
           else
           {
+              HAL_GPIO_WritePin(GPIOA,EC600_EN_Pin, GPIO_PIN_SET);
               HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
               HAL_NVIC_ClearPendingIRQ(EXTI0_IRQn);		//PB0---MEMS INT
               PWR->CR|=1<<2;         
@@ -278,7 +291,6 @@ void readBatteryInfo(void const * argument)
     
     readBmsID();
     osDelay(2000);
-   // osDelay(1);
   }
   /* USER CODE END readBatteryInfo */
 }

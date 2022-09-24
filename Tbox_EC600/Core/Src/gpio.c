@@ -81,11 +81,13 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, BAT_EN_Pin|LET_USART_DTR_Pin|LTE_RESET_Pin|EC600_EN_Pin, GPIO_PIN_RESET);
 
+
+  HAL_GPIO_WritePin(GPIOA, BAT_EN_Pin, GPIO_PIN_SET);
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LED_Y_Pin|CHRG_STOP_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, LED_Y_Pin|CHRG_STOP_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(DE_RE_485_GPIO_Port, DE_RE_485_Pin, GPIO_PIN_SET);

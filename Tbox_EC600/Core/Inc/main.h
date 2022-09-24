@@ -65,7 +65,7 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BatVolt_Adc1_10_Pin GPIO_PIN_0
 #define BatVolt_Adc1_10_GPIO_Port GPIOC
-#define VOLT12_FLAG_Pin GPIO_PIN_2
+#define VOLT12_FLAG_Pin GPIO_PIN_1
 #define VOLT12_FLAG_GPIO_Port GPIOA
 #define BAT_EN_Pin GPIO_PIN_3
 #define BAT_EN_GPIO_Port GPIOA

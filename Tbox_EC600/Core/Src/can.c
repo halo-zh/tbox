@@ -59,6 +59,8 @@ json_t * jsonMsg;
 json_t *motorTemp_t;
 json_t *controllerTemp_t;
 json_t *Battery_Percent_t;
+json_t *BatterySOH_t;
+
 json_t *batTemperature_t;
 json_t *batCurrent_t;
 json_t *batVolt_t;
@@ -77,8 +79,10 @@ void initJsonObj()
     motorTemp_t = json_integer(motorTemp);
     controllerTemp_t = json_integer(controllerTemp);
     Battery_Percent_t = json_integer(soc);
+    BatterySOH_t = json_integer(soh);
+    
     batTemperature_t = json_integer(boardTemp);
-    batCurrent_t = json_integer(currentOut);
+    batCurrent_t = json_integer(batCurrent);
     batVolt_t = json_integer(batVoltTot);
     
     motorRPM_t = json_integer(motorRPM);
@@ -93,6 +97,9 @@ void initJsonObj()
     json_object_set( jsonMsg,"InverterTemp",controllerTemp_t);
     
     json_object_set( jsonMsg,"BatPercent",Battery_Percent_t);
+    json_object_set( jsonMsg,"BatSOH",BatterySOH_t);
+    
+    
     json_object_set( jsonMsg,"BatTemp",batTemperature_t);
     json_object_set( jsonMsg,"BatCurrent",batCurrent_t);
     json_object_set( jsonMsg,"BatVolt",batVolt_t);
@@ -111,8 +118,10 @@ void packJaon()
     json_integer_set( motorTemp_t,motorTemp);
     json_integer_set( controllerTemp_t,controllerTemp);
     json_integer_set( Battery_Percent_t,soc);
+    json_integer_set( BatterySOH_t,soh);
+    
     json_integer_set( batTemperature_t,boardTemp);
-    json_integer_set( batCurrent_t,currentOut);
+    json_integer_set( batCurrent_t,batCurrent);
     json_integer_set( batVolt_t,batVoltTot);
     json_integer_set( motorRPM_t,motorRPM);
     json_integer_set( gearInfo_t,gear);
@@ -283,9 +292,13 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     GPIO_InitStruct.Pin = GPIO_PIN_9;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);\
+    
+    CLEAR_BIT(canHandle->Instance->MCR,CAN_MCR_SLEEP);
 
     __HAL_AFIO_REMAP_CAN1_2();
+    
+    
 
     /* CAN1 interrupt Init */
     HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 5, 0);
@@ -323,6 +336,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+     CLEAR_BIT(canHandle->Instance->MCR,CAN_MCR_SLEEP);
     /* CAN2 interrupt Init */
     HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
@@ -401,11 +415,12 @@ HAL_StatusTypeDef ConfigFilter()
     canFilter.FilterMaskIdHigh=0x0;
     canFilter.FilterMaskIdLow=0x0;
     canFilter.FilterFIFOAssignment = CAN_RX_FIFO0;
+    canFilter.SlaveStartFilterBank=15;
     
     HAL_CAN_ConfigFilter(&hcan1,&canFilter);
     
-    canFilter.FilterBank=14;
-    canFilter.SlaveStartFilterBank=14;
+    canFilter.FilterBank=15;
+    canFilter.SlaveStartFilterBank=15;
     HAL_CAN_ConfigFilter(&hcan2,&canFilter);
     
 } 

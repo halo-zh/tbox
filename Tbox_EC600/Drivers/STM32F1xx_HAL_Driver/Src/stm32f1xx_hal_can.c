@@ -326,6 +326,7 @@ HAL_StatusTypeDef HAL_CAN_Init(CAN_HandleTypeDef *hcan)
   if (hcan->State == HAL_CAN_STATE_RESET)
   {
     /* Init the low level hardware: CLOCK, NVIC */
+    
     HAL_CAN_MspInit(hcan);
   }
 #endif /* (USE_HAL_CAN_REGISTER_CALLBACKS) */
@@ -358,6 +359,7 @@ HAL_StatusTypeDef HAL_CAN_Init(CAN_HandleTypeDef *hcan)
   tickstart = HAL_GetTick();
 
   /* Check Sleep mode leave acknowledge */
+  CLEAR_BIT(hcan->Instance->MCR,CAN_MCR_SLEEP);
   while ((hcan->Instance->MSR & CAN_MSR_SLAK) != 0U)
   {
     if ((HAL_GetTick() - tickstart) > CAN_TIMEOUT_VALUE)

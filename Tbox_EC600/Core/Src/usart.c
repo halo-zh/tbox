@@ -57,9 +57,9 @@ PUTCHAR_PROTOTYPE
 uint16_t batVoltTot; //0
 uint16_t cellCnt;    //1
 uint16_t soc;
-uint16_t capacity;
-uint16_t currentOut;
-uint16_t currentIn;
+uint16_t soh;
+int16_t batCurrent;
+
 uint16_t boardTemp;
 uint16_t batTemp1;
 uint16_t batTemp2;
@@ -107,66 +107,24 @@ unsigned short ModBusCRC16(const void *s, int n)
 
 void updateBatInfo()
 {
- batVoltTot      = bmsInfoPtr->batVoltTot; //0
- cellCnt         = bmsInfoPtr->cellCnt;    //1
- soc             = bmsInfoPtr ->soc;
- capacity        = bmsInfoPtr->capacity;
- currentOut      = bmsInfoPtr->currentOut;
- currentIn       = bmsInfoPtr->currentIn;
- boardTemp       = bmsInfoPtr->boardTemp;
- batTemp1        = bmsInfoPtr->batTemp1;
- batTemp2        = bmsInfoPtr->batTemp2;
- tempOfCell_1    = bmsInfoPtr->tempOfCell_1;
- tempOfCell_2    = bmsInfoPtr->tempOfCell_2;
- tempOfCell_3    = bmsInfoPtr->tempOfCell_3;
- tempOfCell_4    = bmsInfoPtr->tempOfCell_4;
- tempOfCell_5    = bmsInfoPtr->tempOfCell_5;
- tempOfCell_6    = bmsInfoPtr->tempOfCell_6;
- tempOfCell_7    = bmsInfoPtr->tempOfCell_7;
- tempOfCell_8    = bmsInfoPtr->tempOfCell_8;
- tempOfCell_9    = bmsInfoPtr->tempOfCell_9;
- tempOfCell_10   = bmsInfoPtr->tempOfCell_10;
- tempOfCell_11   = bmsInfoPtr->tempOfCell_11;
- tempOfCell_12   = bmsInfoPtr->tempOfCell_12;
- tempOfCell_13   = bmsInfoPtr->tempOfCell_13;
- tempOfCell_14   = bmsInfoPtr->tempOfCell_14;
- tempOfCell_15   = bmsInfoPtr->tempOfCell_15;
- tempOfCell_16   = bmsInfoPtr->tempOfCell_16;
- tempOfCell_17   = bmsInfoPtr->tempOfCell_17;
- tempOfCell_18   = bmsInfoPtr->tempOfCell_18;
- tempOfCell_19   = bmsInfoPtr->tempOfCell_19;
- tempOfCell_20   = bmsInfoPtr->tempOfCell_20; 
+ batVoltTot      = __REV16(bmsInfoPtr->batVoltTot); //0
+ soc             = __REV16(bmsInfoPtr ->soc);
+ soh             = __REV16(bmsInfoPtr->soh);
+ batCurrent      = __REV16(bmsInfoPtr->batCurrent);
+ boardTemp       = __REV16(bmsInfoPtr->batTemp);
+ 
  
 
- batVoltTot      = __REV16(batVoltTot); //0
- cellCnt         = __REV16(cellCnt);    //1
- soc             = __REV16(soc);
- capacity        = __REV16(capacity);
- currentOut      = __REV16(currentOut);
- currentIn       = __REV16(currentIn);
- boardTemp       = __REV16(boardTemp);
- batTemp1        = __REV16(batTemp1);
- batTemp2        = __REV16(batTemp2);
- tempOfCell_1    = __REV16(tempOfCell_1);
- tempOfCell_2    = __REV16(tempOfCell_2);
- tempOfCell_3    = __REV16(tempOfCell_3);
- tempOfCell_4    = __REV16(tempOfCell_4);
- tempOfCell_5    = __REV16(tempOfCell_5);
- tempOfCell_6    = __REV16(tempOfCell_6);
- tempOfCell_7    = __REV16(tempOfCell_7);
- tempOfCell_8    = __REV16(tempOfCell_8);
- tempOfCell_9    = __REV16(tempOfCell_9);
- tempOfCell_10   = __REV16(tempOfCell_10);
- tempOfCell_11   = __REV16(tempOfCell_11);
- tempOfCell_12   = __REV16(tempOfCell_12);
- tempOfCell_13   = __REV16(tempOfCell_13);
- tempOfCell_14   = __REV16(tempOfCell_14);
- tempOfCell_15   = __REV16(tempOfCell_15);
- tempOfCell_16   = __REV16(tempOfCell_16);
- tempOfCell_17   = __REV16(tempOfCell_17);
- tempOfCell_18   = __REV16(tempOfCell_18);
- tempOfCell_19   = __REV16(tempOfCell_19);
- tempOfCell_20   = __REV16(tempOfCell_20);
+ batVoltTot      = (batVoltTot); //0  unit 0.1V
+ soc             = (soc);
+ if(batCurrent&0x8000)
+ {
+     batCurrent = 0xFFFF-batCurrent+1;
+ }
+ batCurrent      = (batCurrent);  //unit:0.1A
+ boardTemp       = (boardTemp);
+
+ 
 }
 
 __packed typedef struct 
@@ -179,7 +137,7 @@ __packed typedef struct
 }bmsReq_t;
 bmsReq_t bmsReq;
 
-uint8_t bmsID[13];
+char bmsID[26]={'6','1','3','8','8'};
 
 uint8_t bmsTxData[8] ;//   ={0x01,0x03,0x00,0x00,0x00,0x1d,0x85,0xc3};  //big endian
 
@@ -206,7 +164,7 @@ bool readBmsID()
     {
         printf("read bms ID info ok\r\n");
         HAL_GPIO_TogglePin(LED_Y_GPIO_Port,LED_Y_Pin);//toggle yellow led when recv 485 msg
-        memcpy(bmsID,bmsRxData,sizeof(bmsID));
+        memcpy(&bmsID[5],&bmsRxData[21],7);
         return true;
     }
     else
@@ -225,8 +183,8 @@ bool readBmsRegs()
     HAL_GPIO_WritePin(DE_RE_485_GPIO_Port,DE_RE_485_Pin,GPIO_PIN_SET);
     bmsReq.bmsAdr = 0x01;
     bmsReq.cmd=0x03; //read regs
-    bmsReq.start=0x00;
-    bmsReq.cnt=0x7;
+    bmsReq.start=0xf0;
+    bmsReq.cnt=0x0e;
     memcpy(bmsTxData,&bmsReq,sizeof(bmsTxData));
     *(uint16_t *)&bmsTxData[2] = __REV16(*(uint16_t *)&bmsTxData[2]);
     *(uint16_t *)&bmsTxData[4] = __REV16(*(uint16_t *)&bmsTxData[4]);
@@ -236,7 +194,11 @@ bool readBmsRegs()
     HAL_GPIO_WritePin(DE_RE_485_GPIO_Port,DE_RE_485_Pin,GPIO_PIN_RESET);
     uart1RxStatus = HAL_UART_Receive(&huart1,bmsRxData, bmsReq.cnt*2+5,1000);  
     if(uart1RxStatus == HAL_OK)
-    {
+    {   if((bmsRxData[0]!=0x01)||(bmsRxData[1] != 0x03))
+        {
+            uart1RxStatus = HAL_UART_Receive(&huart1,bmsRxData, bmsReq.cnt*2+5,10); 
+            return false;
+        }
         printf("read bms info ok\r\n");
         HAL_GPIO_TogglePin(LED_Y_GPIO_Port,LED_Y_Pin);//toggle yellow led when recv 485 msg
         bmsInfoPtr = (bmsInfo_t *)bmsRxData;
@@ -270,6 +232,11 @@ bool readBmsErrInfo()
     uart1RxStatus = HAL_UART_Receive(&huart1,bmsRxData,(0x34+7)/8+5,10000);  
     if(uart1RxStatus == HAL_OK)
     {
+        if((bmsRxData[0]!=0x01)||(bmsRxData[1] != 0x01))
+        {
+            uart1RxStatus = HAL_UART_Receive(&huart1,bmsRxData, (0x34+7)/8+5,10); 
+            return false;
+        }
         printf("read bms info ok\r\n");
          HAL_GPIO_TogglePin(LED_Y_GPIO_Port,LED_Y_Pin);//toggle yellow led when recv 485 msg
         bmsInfoPtr = (bmsInfo_t *)bmsRxData;

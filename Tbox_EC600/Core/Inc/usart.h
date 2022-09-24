@@ -45,34 +45,18 @@ __packed typedef struct
     uint16_t i;
     uint8_t m;
     uint16_t batVoltTot; //0
-    uint16_t cellCnt;    //1
+    int16_t  batCurrent;
     uint16_t soc;
-    uint16_t capacity;
-    uint16_t currentOut;
-    uint16_t currentIn;
-    uint16_t boardTemp;
-    uint16_t batTemp1;
-    uint16_t batTemp2;
-    uint16_t tempOfCell_1;
-    uint16_t tempOfCell_2;
-    uint16_t tempOfCell_3;
-    uint16_t tempOfCell_4;
-    uint16_t tempOfCell_5;
-    uint16_t tempOfCell_6;
-    uint16_t tempOfCell_7;
-    uint16_t tempOfCell_8;
-    uint16_t tempOfCell_9;
-    uint16_t tempOfCell_10;
-    uint16_t tempOfCell_11;
-    uint16_t tempOfCell_12;
-    uint16_t tempOfCell_13;
-    uint16_t tempOfCell_14;
-    uint16_t tempOfCell_15;
-    uint16_t tempOfCell_16;
-    uint16_t tempOfCell_17;
-    uint16_t tempOfCell_18;
-    uint16_t tempOfCell_19;
-    uint16_t tempOfCell_20; 
+    uint16_t soh;
+    uint16_t batIconFlag;
+    uint16_t batChargeStatus;
+    uint16_t batCellVoltMax;
+    uint16_t batCellVoltMin;
+    uint16_t batTempMax;
+    uint16_t batTempMin;
+    uint16_t batCellVolt;
+    uint16_t batCellDiffMax;
+    uint16_t batTemp;
 }bmsInfo_t;
 /* USER CODE END Private defines */
 
@@ -91,8 +75,9 @@ extern uint8_t uart4RxLen;
 extern uint16_t batVoltTot; //0
 extern uint16_t cellCnt;    //1
 extern uint16_t soc;
+extern uint16_t soh;
 extern uint16_t capacity;
-extern uint16_t currentOut;
+extern int16_t batCurrent;
 extern uint16_t currentIn;
 extern uint16_t boardTemp;
 extern uint16_t batTemp1;
